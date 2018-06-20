@@ -103,9 +103,7 @@ namespace DiffB64.Controllers
                     };
             diff_results.diffs.Add(diff);            
         }
-
        
-
         public class PutData {
             public string data;
         }

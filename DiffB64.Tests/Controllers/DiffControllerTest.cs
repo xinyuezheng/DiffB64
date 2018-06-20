@@ -2,15 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Web.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DiffB64.Controllers;
 using System.Net;
 using static DiffB64.Controllers.DiffController;
-using System.Web.Http.Routing;
-using System.Web.Http.Hosting;
-using System.Web.Http.Controllers;
 
 namespace DiffB64.Tests.Controllers
 {
@@ -26,6 +22,7 @@ namespace DiffB64.Tests.Controllers
         //Populate data with Tuple(id, leftstring, rightstring)
         private DiffController CreateController(int id, string left, string right)
         {
+            InitB64();
             var controller = new DiffController();
             controller.Request = new HttpRequestMessage();
             controller.Configuration = new HttpConfiguration();
@@ -46,17 +43,22 @@ namespace DiffB64.Tests.Controllers
         }
 
         [TestMethod, TestCategory("Get")]
-        [ExpectedException(typeof(HttpResponseException))]
         public void GetEmpty()
         {            
             var controller = CreateController(0, null, null);
 
-            //GET /v1/diff/1           
-            var response = controller.Get(1);
+            try
+            {
+                var response = controller.Get(1);
+                Assert.Fail("Get should fail with empty data");
+            }
+            catch (HttpResponseException ex)
+            {
+                Assert.AreEqual(ex.Response.StatusCode, HttpStatusCode.NotFound);
+            }
         }
 
         [TestMethod, TestCategory("Get")]
-        [ExpectedException(typeof(HttpResponseException))]
         public void GetHalfEmpty()
         {
             var left = new string[]{ "AAAAAA==", null };
@@ -66,8 +68,15 @@ namespace DiffB64.Tests.Controllers
             for (int i = 0; i < left.Length; i++)
             {
                 var controller = CreateController(id, left[i], right[i]);
-
-                var response = controller.Get(id);
+                try
+                {
+                    var response = controller.Get(id);
+                    Assert.Fail("Get should fail with data half missing");
+                }
+                catch (HttpResponseException ex)
+                {
+                    Assert.AreEqual(ex.Response.StatusCode, HttpStatusCode.NotFound);
+                }
             }
         }
 
@@ -78,10 +87,9 @@ namespace DiffB64.Tests.Controllers
             var controller = CreateController(id, "AAAAAA==", "AAA=");
 
             var response = controller.Get(id);
-
-            //Assert.AreEqual(response.StatusCode, HttpStatusCode.OK);       
+       
             Assert.AreEqual(response.diffResultType, "SizeDoNotMatch");
-            Assert.AreEqual(response.diffs.Count, 0);
+            Assert.AreEqual(response.ShouldSerializediffs(), false);
         }
 
 
@@ -93,8 +101,8 @@ namespace DiffB64.Tests.Controllers
 
             var response = controller.Get(id);
 
- //           Assert.AreEqual(response.StatusCode, HttpStatusCode.OK);       
             Assert.AreEqual(response.diffResultType, "Equals");
+            Assert.AreEqual(response.ShouldSerializediffs(), false);
         }
 
         [TestMethod, TestCategory("Get")]
@@ -105,8 +113,8 @@ namespace DiffB64.Tests.Controllers
 
             var response = controller.Get(id);
 
-            //           Assert.AreEqual(response.StatusCode, HttpStatusCode.OK);       
             Assert.AreEqual(response.diffResultType, "ContentDoNotMatch");
+            Assert.AreEqual(response.ShouldSerializediffs(), true);
             Assert.AreEqual(response.diffs[0]["offset"], 0);
             Assert.AreEqual(response.diffs[0]["length"], 1);
             Assert.AreEqual(response.diffs[1]["offset"], 2);
@@ -118,7 +126,7 @@ namespace DiffB64.Tests.Controllers
         {
             int[] id = { 1, 4, 0x7fffffff};
             string[] pos = { "left", "right" };
-            var putdata = new PutData { data = "AAAAAA == "};
+            var putdata = new PutData { data = "AAAAAA=="};
 
             var controller = CreateController(0, null, null);
 
@@ -136,6 +144,30 @@ namespace DiffB64.Tests.Controllers
                 }
             }
 
+        }
+
+        [TestMethod, TestCategory("Put")]
+        [ExpectedException(typeof(HttpResponseException))]
+        public void PutNonB64()
+        {
+            int id = 1;
+            string pos = "left";
+            var putdata = new PutData { data = "AXAA==" };
+
+            var controller = CreateController(0, null, null);
+            var response = controller.Put(id, pos, putdata);
+        }
+
+        [TestMethod, TestCategory("Put")]
+        [ExpectedException(typeof(HttpResponseException))]
+        public void PutNull()
+        {
+            int id = 1;
+            string pos = "left";
+            var putdata = new PutData { data = null };
+
+            var controller = CreateController(0, null, null);
+            var response = controller.Put(id, pos, putdata);
         }
 
     }
