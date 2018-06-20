@@ -15,9 +15,10 @@ namespace DiffB64
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
-                name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional }
+                name: "DiffB64Api",
+                routeTemplate: "v1/{controller}/{id}/{pos}",
+                defaults: new { id = RouteParameter.Optional, pos = RouteParameter.Optional }
+//                constraints: new { id = @"/d+"}
             );
         }
     }
