@@ -14,11 +14,11 @@ namespace DiffB64
             // Web API routes
             config.MapHttpAttributeRoutes();
 
-            //config.Routes.MapHttpRoute(
-            //    name: "Default",
-            //    routeTemplate: "{controller}/{action}/{id}",
-            //    defaults: new { controller = "Home", action = "Index", id = RouteParameter.Optional }
-            //);
+            config.Routes.MapHttpRoute(
+                name: "Default",
+                routeTemplate: "{controller}/{action}/{id}",
+                defaults: new { controller = "Home", action = "Index", id = RouteParameter.Optional }
+            );
             config.Routes.MapHttpRoute(
                 name: "DiffB64Api",
                 routeTemplate: "v1/{controller}/{id}/{pos}",
