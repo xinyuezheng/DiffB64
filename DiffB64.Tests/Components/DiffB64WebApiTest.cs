@@ -42,7 +42,7 @@ namespace DiffB64.Tests.Components
                 request = MakeRequest("/v1/diff/1", HttpMethod.Get);
                 await CheckResponse(client, request, HttpStatusCode.OK, JObject.Parse(@"{'diffResultType':'Equals'}"));
 
-                request = MakeRequest("/v1/diff/1/right", HttpMethod.Put, "{\"data\":\"AQABAQ ==\"}");
+                request = MakeRequest("/v1/diff/1/right", HttpMethod.Put, "{\"data\":\"AQABAQ==\"}");
                 await CheckResponse(client, request, HttpStatusCode.Created);
 
                 exp_cont = JObject.Parse(
@@ -63,6 +63,11 @@ namespace DiffB64.Tests.Components
                 request = MakeRequest("/v1/diff/1", HttpMethod.Get);
                 await CheckResponse(client, request, HttpStatusCode.OK, exp_cont);
 
+                request = MakeRequest("/v1/diff/1/left", HttpMethod.Put, "{\"data\":\"AAA=\"}");
+                await CheckResponse(client, request, HttpStatusCode.Created);
+
+                request = MakeRequest("/v1/diff/1", HttpMethod.Get);
+                await CheckResponse(client, request, HttpStatusCode.OK, JObject.Parse(@"{'diffResultType':'SizeDoNotMatch'}"));
             }
 
         }
