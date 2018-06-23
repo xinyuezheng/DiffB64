@@ -3,26 +3,54 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Results;
-using System.Web.Script.Serialization;
 
 namespace DiffB64.Controllers
 {
     [RoutePrefix("v1/diff")]
     public class DiffController : ApiController
     {
-        static public Dictionary<Tuple<int, string>, byte[]> b64data = new Dictionary<Tuple<int, string>, byte[]>();
+        public static Dictionary<string, Dictionary<Tuple<int, string>, byte[]>> g_data = new Dictionary<string, Dictionary<Tuple<int, string>, byte[]>>();
+        public Dictionary<Tuple<int, string>, byte[]> GetB64Data(HttpResponseMessage response)
+        {
+            string sessionId;
+            CookieHeaderValue cookie = Request.Headers.GetCookies("session-id").FirstOrDefault();
+            if (cookie != null)
+            {
+                sessionId = cookie["session-id"].Value;
+                if (g_data.ContainsKey(sessionId))
+                    return g_data[sessionId];
+            }
+            if (response != null)
+            {
+                sessionId = RandomString(24);
+                cookie = new CookieHeaderValue("session-id", sessionId);
+                cookie.Expires = DateTimeOffset.Now.AddDays(1);
+                cookie.Domain = Request.RequestUri.Host;
+                cookie.Path = "/";
+                response.Headers.AddCookies(new CookieHeaderValue[] { cookie });
+
+                var data = new Dictionary<Tuple<int, string>, byte[]>();
+                g_data[sessionId] = data;
+                return data;
+            }
+
+            throw new KeyNotFoundException();
+        }
 
         // GET v1/diff/{id}
         [Route("{id:int:min(1)}")]
         public DiffResults Get(int id)
-        {         
+        {
             var key_left = new Tuple<int, string>(id, "left");
             var key_right = new Tuple<int, string>(id, "right");
             byte[] binary_left, binary_right;
             try
             {
+                var b64data = GetB64Data(null);
                 binary_left = b64data[key_left];
                 binary_right = b64data[key_right];
             }
@@ -109,7 +137,7 @@ namespace DiffB64.Controllers
         }
 
         // PUT v1/diff/{id}/{pos}  1<= id <= 2,147,483,647 (or 0x7FFF,FFFF) is the maximum positive value for a 32-bit
-        [Route("{id:int:min(1)}/{pos:alpha:regex([left|right])}")]
+        [Route("{id:int:min(1)}/{pos:regex((left|right))}")]
         public HttpResponseMessage Put(int id, string pos, [FromBody]PutData put_data)
         {
             byte[] binary;
@@ -127,9 +155,17 @@ namespace DiffB64.Controllers
             }
 
             var key = Tuple.Create(id, pos);
-            b64data[key] = binary;
+            var response = Request.CreateResponse(HttpStatusCode.Created, "Create OK");
+            GetB64Data(response)[key] = binary;
 
-            return Request.CreateResponse(HttpStatusCode.Created, "Create OK");
+            return response;
+        }
+        public static string RandomString(int length)
+        {
+            var random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }
