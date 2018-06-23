@@ -181,7 +181,7 @@ namespace DiffB64.Tests.Controllers
         }
 
         [TestMethod, TestCategory("Put")]
-        public void PutNull()
+        public void PutDataNull()
         {
             var session_id = "ffffessl2";
             int id = 1;
@@ -199,8 +199,27 @@ namespace DiffB64.Tests.Controllers
             {
                 Assert.AreEqual(ex.Response.StatusCode, HttpStatusCode.BadRequest);
             }
+        }
 
+        [TestMethod, TestCategory("Put")]
+        public void PutNull()
+        {
+            var session_id = "ffffessl2";
+            int id = 1;
+            string pos = "left";
 
+            AddFakeDataToController(session_id, 0, null, null);
+            controller.Request.Headers.Add("cookie", "session-id=" + session_id);
+            try
+            {
+                var response = controller.Put(id, pos, null);
+                Assert.Fail("Put Null is not allowed");
             }
+            catch (HttpResponseException ex)
+            {
+                Assert.AreEqual(ex.Response.StatusCode, HttpStatusCode.NoContent);
+            }
+        }
+
     }
 }

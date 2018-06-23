@@ -13,6 +13,8 @@ namespace DiffB64.Controllers
     [RoutePrefix("v1/diff")]
     public class DiffController : ApiController
     {
+        static Random rng = new Random();
+
         public static Dictionary<string, Dictionary<Tuple<int, string>, byte[]>> g_data = new Dictionary<string, Dictionary<Tuple<int, string>, byte[]>>();
         public Dictionary<Tuple<int, string>, byte[]> GetB64Data(HttpResponseMessage response)
         {
@@ -140,6 +142,11 @@ namespace DiffB64.Controllers
         [Route("{id:int:min(1)}/{pos:regex((left|right))}")]
         public HttpResponseMessage Put(int id, string pos, [FromBody]PutData put_data)
         {
+            if (put_data == null)
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NoContent, "No content received"));
+            }
+
             byte[] binary;
             try
             {
@@ -162,10 +169,9 @@ namespace DiffB64.Controllers
         }
         public static string RandomString(int length)
         {
-            var random = new Random();
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             return new string(Enumerable.Repeat(chars, length)
-              .Select(s => s[random.Next(s.Length)]).ToArray());
+              .Select(s => s[rng.Next(s.Length)]).ToArray());
         }
     }
 }

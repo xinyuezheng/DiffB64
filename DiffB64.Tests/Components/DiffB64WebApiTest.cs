@@ -19,7 +19,6 @@ namespace DiffB64.Tests.Components
         HttpConfiguration config;
         HttpServer server;
         HttpClient client;
-        CookieBox cb;
 
         [TestInitialize]
         public void Setup()
@@ -29,7 +28,6 @@ namespace DiffB64.Tests.Components
 
             server = new HttpServer(config);
             client = MakeClient(server);
-            cb = new CookieBox();
         }
 
         [TestMethod, TestCategory("HappyFlow")]
@@ -37,6 +35,7 @@ namespace DiffB64.Tests.Components
         {
             HttpRequestMessage request;
             JObject exp_cont;
+            var cb = new CookieBox();
 
             request = MakeRequest(cb.cookie, "/v1/diff/1", HttpMethod.Get);
             await CheckResponse(cb, client, request, HttpStatusCode.NotFound);
@@ -86,6 +85,7 @@ namespace DiffB64.Tests.Components
         public async Task PutRouting()
         {
             HttpRequestMessage request;
+            var cb = new CookieBox();
 
             request = MakeRequest(cb.cookie, "/v1/diff/1", HttpMethod.Put, "{\"data\":\"AAA=\"}");
             await CheckResponse(cb, client, request, HttpStatusCode.MethodNotAllowed);
@@ -113,6 +113,7 @@ namespace DiffB64.Tests.Components
         public async Task GetRouting()
         {
             HttpRequestMessage request;
+            var cb = new CookieBox();
 
             request = MakeRequest(cb.cookie, "/v1/diff/", HttpMethod.Get);
             await CheckResponse(cb, client, request, HttpStatusCode.NotFound);
@@ -128,6 +129,7 @@ namespace DiffB64.Tests.Components
         public async Task BoundaryCheck()
         {
             HttpRequestMessage request;
+            var cb = new CookieBox();
 
             request = MakeRequest(cb.cookie, "/v1/diff/2147483647/left", HttpMethod.Put, "{\"data\":\"AAA=\"}");
             await CheckResponse(cb, client, request, HttpStatusCode.Created);
@@ -154,6 +156,45 @@ namespace DiffB64.Tests.Components
             await CheckResponse(cb, client, request, HttpStatusCode.NotFound);
         }
 
+        [TestMethod, TestCategory("Cookie")]
+        public async Task UseDifferentCookie()
+        {
+            HttpRequestMessage request;
+            var cb = new CookieBox();
+
+            request = MakeRequest(cb.cookie, "/v1/diff/1/left", HttpMethod.Put, "{\"data\":\"AAAAAA==\"}");
+            await CheckResponse(cb, client, request, HttpStatusCode.Created);
+
+            request = MakeRequest(cb.cookie, "/v1/diff/1/right", HttpMethod.Put, "{\"data\":\"AAAAAA==\"}");
+            await CheckResponse(cb, client, request, HttpStatusCode.Created);
+
+            request = MakeRequest(cb.cookie, "/v1/diff/1", HttpMethod.Get);
+            await CheckResponse(cb, client, request, HttpStatusCode.OK, JObject.Parse(@"{'diffResultType':'Equals'}"));
+
+            request = MakeRequest("differentcookie", "/v1/diff/1", HttpMethod.Get);
+            await CheckResponse(cb, client, request, HttpStatusCode.NotFound);
+        }
+
+        [TestMethod, TestCategory("Cookie")]
+        public async Task OverwriteFromDifferentUser()
+        {
+            HttpRequestMessage request;
+            var cb = new CookieBox();
+            var cb2 = new CookieBox();
+
+            request = MakeRequest(null, "/v1/diff/1/left", HttpMethod.Put, "{\"data\":\"AAAAAA==\"}");
+            await CheckResponse(cb, client, request, HttpStatusCode.Created);
+
+            request = MakeRequest(cb.cookie, "/v1/diff/1/right", HttpMethod.Put, "{\"data\":\"AAAAAA==\"}");
+            await CheckResponse(cb, client, request, HttpStatusCode.Created);
+
+            request = MakeRequest(null, "/v1/diff/1/right", HttpMethod.Put, "{\"data\":\"AQABAQ==\"}");
+            await CheckResponse(cb2, client, request, HttpStatusCode.Created);
+
+            request = MakeRequest(cb.cookie, "/v1/diff/1", HttpMethod.Get);
+            await CheckResponse(cb, client, request, HttpStatusCode.OK, JObject.Parse(@"{'diffResultType':'Equals'}"));
+        }
+
         private static HttpRequestMessage MakeRequest(string cookie, string url, HttpMethod method, string content = null)
         {
             HttpRequestMessage request = new HttpRequestMessage(method, url);
@@ -171,7 +212,7 @@ namespace DiffB64.Tests.Components
             public string cookie;
         }
 
-        private static async Task CheckResponse(CookieBox container, HttpClient client, HttpRequestMessage request, HttpStatusCode exp_status_code, JObject exp_content = null)
+        private static async Task CheckResponse(CookieBox cookiebox, HttpClient client, HttpRequestMessage request, HttpStatusCode exp_status_code, JObject exp_content = null)
         {
             using (var response = await client.SendAsync(request))
             {
@@ -186,10 +227,9 @@ namespace DiffB64.Tests.Components
                 IEnumerable<String> values;
                 if (response.Headers.TryGetValues("Set-Cookie", out values))
                 {
-                    container.cookie = values.First();
+                    cookiebox.cookie = values.First();
                 }
             }
-
         }
 
         private static HttpClient MakeClient(HttpServer server)
