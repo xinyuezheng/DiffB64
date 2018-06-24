@@ -1,11 +1,12 @@
 # DiffB64
 
 ## Introduction:
-This project provides Provide a web API to compare two Base64 encoded strings. 
+This project provides a web API to compare two Base64 encoded strings. 
 
 ## How to Use:
-Given 2 http endpoints (<host>/v1/diff/<ID>/left and <host>/v1/diff/<ID>/right) that accept JSON containing base64 encoded binary data on both points. 
-The diff-ed results of the two inputs are available on a third end point (<host>/v1/diff/<ID>). The results has the following JSON format:
+Use Http Put method to put 2 http endpoints (<host>/v1/diff//left and <host>/v1/diff//right) that accept 
+JSON containing base64 encoded binary data <br>
+Use Http Get method to get the diff-ed results of the two inputs on a third endpoint (<host>/v1/diff/). The diff-ed results has the following JSON format:
 
 If two binaries are equal return:
 ```javascript
