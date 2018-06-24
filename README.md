@@ -1,6 +1,5 @@
 # DiffB64
 
-
 ## Introduction:
 This project provides Provide a web API to compare two Base64 encoded strings. 
 
@@ -78,4 +77,14 @@ This will indicate the current IP address used by docker for the application
 ## Test
 1. The project contains DiffB64.Test project for UnitTest and IntegrationTest. Those can be run standalone from TestExplore in Visual Studio
 2. It's also possible to test it as a black box by using tools such as wget or fiddler. Use IP address from the deployment step 
+3. An example of a running instance of the project is hosted on http://diffb64.azurewebsites.net/
+You can play around it with Wget
+```
+wget -q -O - --method=PUT --load-cookies cookies.txt --save-cookies cookies.txt --keep-session-cookies --header='Content-Type: application/json' --body-data='{ "data": "AAAAAA==" }' http://diffb64.azurewebsites.net/v1/diff/2/left
 
+wget -q -O - --method=PUT --load-cookies cookies.txt --save-cookies cookies.txt --keep-session-cookies --header='Content-Type: application/json' --body-data='{ "data": "AAAAAA==" }' http://diffb64.azurewebsites.net/v1/diff/2/right
+
+wget -q -O - --load-cookies cookies.txt --save-cookies cookies.txt --keep-session-cookies http://diffb64.azurewebsites.net/v1/diff/2
+
+```
+Have Fun :)
