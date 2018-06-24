@@ -116,6 +116,24 @@ namespace DiffB64.Tests.Controllers
         }
 
         [TestMethod, TestCategory("Get")]
+        public void GetNoEqual()
+        {
+            var session_id = "4567atre";
+            int id = 2;
+            AddFakeDataToController(session_id, id, "AAA=", "AAB=");
+            //var putdata = new DiffController.PutData { data = "AAA=" };
+            //var putdata = new DiffController.PutData { data = "AAB=" };
+
+
+            controller.Request.Headers.Add("cookie", "session-id=" + session_id);
+            var response = controller.Get(id);
+
+            Assert.AreEqual(response.diffResultType, "SizeDoNotMatch");
+            Assert.AreEqual(response.ShouldSerializediffs(), false);
+        }
+
+
+        [TestMethod, TestCategory("Get")]
         public void GetNotEqual()
         {
             var session_id = "4567atre";
