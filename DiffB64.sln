@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiffB64", "DiffB64\DiffB64.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiffB64.Tests", "DiffB64.Tests\DiffB64.Tests.csproj", "{C71F4C1A-1C31-4179-BD9E-622A3C4B6721}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{033A02EF-6C77-4300-8DDC-9C5A8B3746B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C71F4C1A-1C31-4179-BD9E-622A3C4B6721}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C71F4C1A-1C31-4179-BD9E-622A3C4B6721}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C71F4C1A-1C31-4179-BD9E-622A3C4B6721}.Release|Any CPU.Build.0 = Release|Any CPU
+		{033A02EF-6C77-4300-8DDC-9C5A8B3746B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{033A02EF-6C77-4300-8DDC-9C5A8B3746B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{033A02EF-6C77-4300-8DDC-9C5A8B3746B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{033A02EF-6C77-4300-8DDC-9C5A8B3746B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

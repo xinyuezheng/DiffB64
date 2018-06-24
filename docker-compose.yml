@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  diffb64:
+    image: ${DOCKER_REGISTRY}diffb64
+    build:
+      context: .\DiffB64
+      dockerfile: Dockerfile
